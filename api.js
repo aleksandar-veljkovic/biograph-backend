@@ -3,6 +3,7 @@ const corsMiddleware = require('restify-cors-middleware');
 const Neo4J = require('./database/neo4j/neo4j');
 const config = require('./config');
 const utils = require('./utils');
+const loadIndexers = require('./indexers/indexers');
 
 const db = new Neo4J(config);
 db.connect();
@@ -21,6 +22,8 @@ server.pre(cors.preflight);
 server.use(cors.actual);
 server.use(restify.plugins.queryParser({ mapParams: false }));
 server.use(restify.plugins.bodyParser());
+
+let loadedIndexers = null;
 
 // Routes
 // =================================
@@ -48,7 +51,7 @@ server.post('/query', (req, res, next) => {
     const { match, params } = query;
 
     const preparedQuery = utils.prepareQuery(match, params);
-    
+
     const startTime = new Date();
 
     const session = db.createReadSession();
@@ -71,14 +74,45 @@ server.get('/node', (req, res, next) => {
         res.send(utils.formatSingleNodeResults(results));
         session.close()
     })
-})
+});
 
-server.listen(
-    config.api.port,
-    config.api.host || 'localhost',
-    () => console.log(`${config.api.appName} API listening at ${
-      server.address().address
-    }:${
-      config.api.port
-    }`),
-  );
+server.get('/search', async (req, res, next) => {
+    console.log('Query received');
+    const { q, entityType } = req.query;
+
+    console.log({ q, entityType });
+    let byIdentifier = [];
+    let byKeyword = [];
+
+    try {
+        const byIdentifierRaw = await loadedIndexers.identifierIndexer.getEntitiesByIdentifier(q.split(' ').map(el => el.trim()), entityType)
+        // console.log(byIdentifierRaw);
+        for (const entity of byIdentifierRaw) {
+            // console.log(entity);
+            const { primary_id: primaryId } = entity;
+            // console.log(primaryId);
+            const identifiers = await loadedIndexers.identifierIndexer.getEntityIdentifiers(primaryId);
+            // console.log(identifiers);
+            identifiers.map(id => id.value)
+            byIdentifier.push({ primaryId, identifiers: identifiers.map(id => id.value) });
+        }
+        // byKeyword = await loadedIndexers.identifierIndexes.getEntitiesByIdentifier(q)
+    } catch (err) {
+        console.log(err);
+    } finally {
+        res.send({ byIdentifier, byKeyword });
+        return next();
+    }
+
+});
+
+loadIndexers().then(indexers => {
+    loadedIndexers = indexers;
+    server.listen(
+        config.api.port,
+        config.api.host || 'localhost',
+        () => console.log(`${config.api.appName} API listening at ${server.address().address
+            }:${config.api.port
+            }`),
+    )
+});

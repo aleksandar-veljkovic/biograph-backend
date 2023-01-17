@@ -42,6 +42,7 @@ class DisprotImporter {
 				acc,
 				disprot_id,
 				name,
+				genes,
 			} = protein;
 
             proteinAcc.push(acc);
@@ -78,6 +79,27 @@ class DisprotImporter {
 
             await bg.createIdentifierNode(proteinEntityId, 'url', 'Disprot URL', `https://disprot.org/${disprot_id}`);
 			await bg.createIdentifierNode(proteinEntityId, 'name', 'Protein Name', name);
+
+			// Gene
+			// =========================
+
+			if (genes != null) {
+				for (const gene of genes) {
+					let geneEntityId = null
+					if (gene.name != null) {
+						const geneSymbol = gene.name.value;
+						geneEntityId = await bg.createEntityNode('Gene', geneSymbol);
+					}
+
+					if (geneEntityId != null && gene.synonyms != null) {
+						const geneSynonyms = gene.synonyms.map(el => el.value);
+						for (const synonym of geneSynonyms) {
+							await bg.createIdentifierNode(geneEntityId, 'id', 'Synonym', synonym);
+						}
+					}
+				}
+			}
+			
 
             // Taxonomy
 			// ==========================

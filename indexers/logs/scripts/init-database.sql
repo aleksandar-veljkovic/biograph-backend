@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS Entries (
     primary_id STRING
 );
 
+CREATE INDEX IF NOT EXISTS entriesEntryTypeIndex ON Entries(entry_type);
+CREATE INDEX IF NOT EXISTS entriesPrimaryIdIndex ON Entries(primary_id);
+
 -- Initialize entries-imports table
 CREATE TABLE IF NOT EXISTS EntriesImports (
     import_id STRING NOT NULL,
@@ -31,14 +34,29 @@ CREATE TABLE IF NOT EXISTS EntityDescriptions (
     FOREIGN KEY (entity_id) REFERENCES Entries(id)
 );
 
+CREATE INDEX IF NOT EXISTS entityDescriptionsEntityIdIndex ON EntityDescriptions(entity_id);
+
 -- Initialize entity identifiers table
 CREATE TABLE IF NOT EXISTS EntityIdentifiers (
     entry_id STRING NOT NULL,
     entity_id STRING NOT NULL,
+    FOREIGN KEY (entity_id) REFERENCES Entries(id)
+    FOREIGN KEY (entry_id) REFERENCES Entries(id)
+);
+
+CREATE INDEX IF NOT EXISTS entryIdentifiersEntityIdIndex ON EntityIdentifiers(entity_id);
+CREATE INDEX IF NOT EXISTS entryIdentifiersEntryIdIndex ON EntityIdentifiers(entry_id);
+
+CREATE TABLE IF NOT EXISTS Identifiers (
+    entry_id STRING NOT NULL,
+    identifier_type STRING NOT NULL,
     value STRING NOT NULL,
     is_primary BOOLEAN NOT NULL,
-    FOREIGN KEY (entity_id) REFERENCES Entries(id)
+    FOREIGN KEY (entry_id) REFERENCES Entries(id)
 );
+
+CREATE INDEX IF NOT EXISTS identifiersValueIndex ON Identifiers(value);
 
 -- Initialize description table index
 CREATE VIRTUAL TABLE IF NOT EXISTS description_index USING fts5(content="EntityDescriptions", entity_id, description_text);
+CREATE VIRTUAL TABLE IF NOT EXISTS identifier_index USING fts5(content="Identifiers", entry_id, value);

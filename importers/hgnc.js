@@ -131,7 +131,7 @@ class DisprotImporter {
 
             if (alias_names != null) {
                 for (const alias_name of alias_names) {
-                    await bg.createIdentifierNode(geneEntityId, 'id', 'alias_name', alias_name);
+                    await bg.createIdentifierNode(geneEntityId, 'id', 'Alias Name', alias_name);
                 }
             }
 

@@ -67,7 +67,7 @@ class BioGraph {
                 
         } catch(err) {
             console.log(err);
-            this.rollbackImport();
+            // this.rollbackImport();
             throw new Error('Import failed');
         } finally {
             await this.session.close();
@@ -110,8 +110,11 @@ class BioGraph {
 
         if (isNodeAdded) {
             this.currentImport.nodes.push(identifierNode.getObj());
+            await this.indexers.identifierIndexer.createIdentifier(identifierNode.getKey(), identifierType, identifierValue, isPrimary);
+        }
 
-            await this.indexers.identifierIndexer.createIdentifier(identifierNode.getKey(), entityId, identifierValue, isPrimary);
+        if (isIdentifierEdgeAdded) {
+            await this.indexers.identifierIndexer.createIdentifierLink(identifierNode.getKey(), entityId);
         }
 
         if (isIdentifierEdgeAdded) {

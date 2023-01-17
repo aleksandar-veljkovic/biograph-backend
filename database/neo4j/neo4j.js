@@ -17,7 +17,7 @@ class DB {
 
     connect() {
         return new Promise((resolve, reject) => {
-            resolve();
+            // resolve();
             this.driver.verifyConnectivity()
                 .then(() => {
                     const session = this.createWriteSession();
@@ -33,8 +33,8 @@ class DB {
                         Promise.all(constraintPromises).then(() => {
                             tx.commit().then(() => {
                                 session.close();
-                            })
-                        resolve();
+                                resolve();
+                            }).catch(err => {console.log(err); reject(err)})
                     })
                 })
                 .catch((err) => reject(err))

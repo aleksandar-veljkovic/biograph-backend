@@ -52,6 +52,7 @@ class DisGeNetImporter {
             await bg.createIdentifierNode(diseaseEntityId, 'id', 'Condition ID', diseaseId);
             await bg.createIdentifierNode(diseaseEntityId, 'name', 'Disease Type', diseaseType);
             await bg.createIdentifierNode(diseaseEntityId, 'name', 'Disease Semantic Type', diseaseSemanticType);
+            await bg.createIdentifierNode(diseaseEntityId, 'name', 'Disease Name', diseaseName);
 
             await bg.createDataNode(diseaseEntityId, 'DisGeNet', {
 				disease_name: diseaseName,

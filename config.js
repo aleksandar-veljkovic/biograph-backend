@@ -5,7 +5,7 @@ module.exports = {
         port: 7687,
         database: 'neo4j',
         username: 'neo4j',
-        password: 'biograph',
+        password: 'password',
     },
     api: {
         host: '127.0.0.1',
